@@ -1,11 +1,27 @@
 const mongoose = require('mongoose');
-mongoose.connect("mongodb://127.0.0.1:27017/booksdb");
-const userSchema = mongoose.Schema({
-    bookname:String,
-    price:Number,
-    author:String,
-    category: String,
-    image:String
-    
+require("dotenv").config();
+const pathdb=process.env.MONGODB_URL;
+mongoose.connect(pathdb).then(()=>{
+console.log("connected to mongooDB");
+}).catch((error)=>{
+     throw error;
 });
-module.exports = mongoose.model('book',userSchema);
+const bookSchema = mongoose.Schema({
+  bookname: { type: String, required: true },
+  price: { type: Number, required: true },
+  author: { type: String, required: true },
+  category: { type: String, required: true },
+  image: { type: String, required: true },
+  description: { type: String, default: '' },
+  seller: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  buyer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  sold: { type: Boolean, default: false },
+  available: { type: Boolean, default: true },
+  purchaseInfo: {
+    paymentMethod: { type: String, enum: ['points', 'online', 'other', 'none'], default: 'none' },
+    usedPoints: { type: Boolean, default: false },
+    purchasedAt: { type: Date }
+  }
+});
+
+module.exports = mongoose.model('book', bookSchema);

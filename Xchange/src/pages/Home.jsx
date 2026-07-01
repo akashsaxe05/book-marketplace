@@ -1,200 +1,211 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation} from 'react-router-dom';
-
+import { Link, useLocation } from 'react-router-dom';
+import axios from 'axios';
+import Categorybar from '../components/Categorybar';
 
 function Home() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const searchTerm = searchParams.get("search") || '';
+  const searchTerm = searchParams.get('search') || '';
   const [books, setBooks] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [loading, setLoading] = useState(true);
+  const port = import.meta.env.VITE_API_URL || '3000';
 
   useEffect(() => {
-    fetch('http://localhost:3000/')
-    .then((res)=>res.json())
-    .then((data)=>setBooks(data))
-    .catch((err)=>console.error(err));
-  }, []);
+    const fetching = async () => {
+      try {
+        const res = await axios.get(`http://localhost:${port}/`);
+        setBooks(res.data || []);
+      } catch (error) {
+        console.error('Failed to load books:', error);
+        setBooks([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetching();
+  }, [port]);
 
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
   };
-  const handleDelete= async(id)=>{
-    const res = await fetch(`http://localhost:3000/delete/${id}`,{
-      method : 'DELETE'
-    });
-    setBooks(books.filter(book => book._id !== id));
 
-  }
+  const filteredBooks = books.filter((book) => {
+    const matchesCategory = selectedCategory === 'All' ? true : book.category === selectedCategory;
+    const matchesSearch =
+      book.bookname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      book.author.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
-    <div>
-      {/* Navigation */}
-      <nav className="mt-10 py-2 flex flex-wrap gap-4 justify-between px-5 font-bold shadow-2xl">
-        <select
-          className="border border-black px-2 py-1"
-          value={selectedCategory}
-          onChange={handleCategoryChange}
-        >
-          <option value="All">All Categories</option>
-          <option value="Autobiography">Autobiography</option>
-          <option value="Course">Course</option>
-          <option value="Noble">Noble</option>
-          <option value="Story">Story</option>
-          <option value="Fiction">Fiction</option>
-          <option value="Programming">Programming</option>
-          <option value="Self-help">Self-help</option>
-        </select>
+    <div className="pt-28 px-5 pb-10 bg-slate-50 min-h-screen">
+      <Categorybar handleCategoryChange={handleCategoryChange} selectedCategory={selectedCategory} />
 
-        {/* These could scroll to specific sections if you add corresponding ids */}
-        <a href="#fiction" className="text-blue-600 hover:underline">Fiction</a>
-        <a href="#autobiography" className="text-blue-600 hover:underline">Autobiography</a>
-        <a href="#course" className="text-blue-600 hover:underline">Course</a>
-        <a href="#noble" className="text-blue-600 hover:underline">Noble</a>
-        <a href="#story" className="text-blue-600 hover:underline">Story</a>
-      </nav>
+      <div className="max-w-7xl mx-auto mt-8">
+        <div className="rounded-[2rem] bg-gradient-to-r from-emerald-200 via-sky-100 to-indigo-100 p-8 shadow-lg">
+          <h1 className="text-4xl font-bold text-slate-900">Welcome to Xchange</h1>
+          <p className="mt-3 max-w-2xl text-slate-700">
+            Browse books by category, sign up first, then log in to access the full marketplace experience.
+          </p>
+        </div>
 
-      {/* Book Cards */}
-      <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6 px-5">
-        {books
-          .filter((book) =>
-{            const matchesCategory= selectedCategory === "All" ? true : book.category === selectedCategory
-             const matchesSearch=book.bookname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      book.author.toLowerCase().includes(searchTerm.toLowerCase());
+        <section className="mt-8">
+          <h2 className="text-2xl font-semibold mb-4">All books</h2>
+          {loading ? (
+            <div className="rounded-3xl bg-white p-12 text-center text-slate-600 shadow-sm">Loading books...</div>
+          ) : filteredBooks.length === 0 ? (
+            <div className="rounded-3xl bg-white p-12 text-center text-slate-600 shadow-sm">No books match your search or category selection.</div>
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+              {filteredBooks.map((book) => (
+                <Link key={book._id || book.id} to={`/book/${book._id || book.id}`}>
+                  <div className="book-card overflow-hidden bg-white p-5 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl">
+                    <div className="aspect-[4/3] overflow-hidden rounded-3xl bg-slate-100">
+                      <img src={book.image} alt={book.bookname} className="h-full w-full object-cover" />
+                    </div>
+                    <div className="mt-4">
+                      <h3 className="text-xl font-semibold text-slate-900">{book.bookname}</h3>
+                      <p className="mt-2 text-slate-600">{book.author}</p>
+                      <div className="mt-3 flex items-center justify-between gap-3 text-sm text-slate-500">
+                        <span>{book.category}</span>
+                        <span className="font-semibold text-emerald-600">{book.price} pts</span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
 
-    return matchesCategory && matchesSearch;
-}          )
-          .map((book) => (
-            <Link to={`/book/${book.id}`} key={book.id}>
-              <div className="border bg-white rounded-xl p-4 shadow hover:shadow-lg transition">
-                <h3 className="text-lg font-bold">{book.bookname}</h3>
-                <p className="text-gray-600">{book.author}</p>
-                <p className="text-sm mt-1">Category: {book.category}</p>
-                <p className="text-blue-600 mt-2 font-semibold">{book.price} pts</p>
-                 <div class="w-50 h-50 bg-red-500 rounded-2xl">
-                  <img src={book.image} alt="image" class="h-full w-full "/>
-                </div>
-                
-              <Link to='/'> <button
-               onClick={()=>handleDelete(book._id)} 
-               className="text-red-700 hover:underline mt-2">Delete</button></Link>
-              </div>
-            </Link>
-          ))}
+        <section id="fiction" className="mt-12">
+          <h2 className="section-title">Fiction Section</h2>
+          <div className="section-panel grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            {books
+              .filter((book) => book.category === 'Fiction')
+              .map((book) => (
+                <Link key={book._id || book.id} to={`/book/${book._id || book.id}`}>
+                  <div className="book-card overflow-hidden bg-white p-5 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl">
+                    <div className="aspect-[4/3] overflow-hidden rounded-3xl bg-slate-100">
+                      <img src={book.image} alt={book.bookname} className="h-full w-full object-cover" />
+                    </div>
+                    <div className="mt-4">
+                      <h3 className="text-xl font-semibold text-slate-900">{book.bookname}</h3>
+                      <p className="mt-2 text-slate-600">{book.author}</p>
+                      <div className="mt-3 flex items-center justify-between gap-3 text-sm text-slate-500">
+                        <span>{book.category}</span>
+                        <span className="font-semibold text-emerald-600">{book.price} pts</span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+          </div>
+        </section>
+
+        <section id="story" className="mt-12">
+          <h2 className="section-title">Story Section</h2>
+          <div className="section-panel grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            {books
+              .filter((book) => book.category === 'Story')
+              .map((book) => (
+                <Link key={book._id || book.id} to={`/book/${book._id || book.id}`}>
+                  <div className="book-card overflow-hidden bg-white p-5 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl">
+                    <div className="aspect-[4/3] overflow-hidden rounded-3xl bg-slate-100">
+                      <img src={book.image} alt={book.bookname} className="h-full w-full object-cover" />
+                    </div>
+                    <div className="mt-4">
+                      <h3 className="text-xl font-semibold text-slate-900">{book.bookname}</h3>
+                      <p className="mt-2 text-slate-600">{book.author}</p>
+                      <div className="mt-3 flex items-center justify-between gap-3 text-sm text-slate-500">
+                        <span>{book.category}</span>
+                        <span className="font-semibold text-emerald-600">{book.price} pts</span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+          </div>
+        </section>
+
+        <section id="autobiography" className="mt-12">
+          <h2 className="section-title">Autobiography Section</h2>
+          <div className="section-panel grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            {books
+              .filter((book) => book.category === 'Autobiography')
+              .map((book) => (
+                <Link key={book._id || book.id} to={`/book/${book._id || book.id}`}>
+                  <div className="book-card overflow-hidden bg-white p-5 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl">
+                    <div className="aspect-[4/3] overflow-hidden rounded-3xl bg-slate-100">
+                      <img src={book.image} alt={book.bookname} className="h-full w-full object-cover" />
+                    </div>
+                    <div className="mt-4">
+                      <h3 className="text-xl font-semibold text-slate-900">{book.bookname}</h3>
+                      <p className="mt-2 text-slate-600">{book.author}</p>
+                      <div className="mt-3 flex items-center justify-between gap-3 text-sm text-slate-500">
+                        <span>{book.category}</span>
+                        <span className="font-semibold text-emerald-600">{book.price} pts</span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+          </div>
+        </section>
+
+        <section id="noble" className="mt-12">
+          <h2 className="section-title">Noble Section</h2>
+          <div className="section-panel grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            {books
+              .filter((book) => book.category === 'Noble')
+              .map((book) => (
+                <Link key={book._id || book.id} to={`/book/${book._id || book.id}`}>
+                  <div className="book-card overflow-hidden bg-white p-5 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl">
+                    <div className="aspect-[4/3] overflow-hidden rounded-3xl bg-slate-100">
+                      <img src={book.image} alt={book.bookname} className="h-full w-full object-cover" />
+                    </div>
+                    <div className="mt-4">
+                      <h3 className="text-xl font-semibold text-slate-900">{book.bookname}</h3>
+                      <p className="mt-2 text-slate-600">{book.author}</p>
+                      <div className="mt-3 flex items-center justify-between gap-3 text-sm text-slate-500">
+                        <span>{book.category}</span>
+                        <span className="font-semibold text-emerald-600">{book.price} pts</span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+          </div>
+        </section>
+
+        <section id="course" className="mt-12">
+          <h2 className="section-title">Course Section</h2>
+          <div className="section-panel grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            {books
+              .filter((book) => book.category === 'Course')
+              .map((book) => (
+                <Link key={book._id || book.id} to={`/book/${book._id || book.id}`}>
+                  <div className="book-card overflow-hidden bg-white p-5 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl">
+                    <div className="aspect-[4/3] overflow-hidden rounded-3xl bg-slate-100">
+                      <img src={book.image} alt={book.bookname} className="h-full w-full object-cover" />
+                    </div>
+                    <div className="mt-4">
+                      <h3 className="text-xl font-semibold text-slate-900">{book.bookname}</h3>
+                      <p className="mt-2 text-slate-600">{book.author}</p>
+                      <div className="mt-3 flex items-center justify-between gap-3 text-sm text-slate-500">
+                        <span>{book.category}</span>
+                        <span className="font-semibold text-emerald-600">{book.price} pts</span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+          </div>
+        </section>
       </div>
-
-      {/* Example section to scroll to with anchor link */}
-      <div id="fiction" className="mt-15 p-4  bg-green-100">
-        <h2 className="text-2xl font-bold py-4">Fiction Section</h2>
-        <div className="flex flex-row gap-4">
-          {books
-            .filter((book) =>book.category==="Fiction"
-          ).map((book)=>(
-             <Link to={`/book/${book.id}`} key={book.id}>
-              <div className="border bg-white rounded-xl p-4 shadow hover:shadow-lg transition">
-                <h3 className="text-lg font-bold">{book.bookname}</h3>
-                <p className="text-gray-600">{book.author}</p>
-                <p className="text-sm mt-1">Category: {book.category}</p>
-                <p className="text-blue-600 mt-2 font-semibold">{book.price} pts</p>
-                <div class="w-50 h-50 bg-red-500 rounded-2xl">
-                  <img src={book.image} alt="image" class="h-full w-full "/>
-                </div>
-               
-              </div>
-            </Link>
-          ))
-
-        }
-        </div>
-      </div> 
-      <div id="story" className="mt-15 p-4  bg-green-100">
-        <h2 className="text-2xl font-bold py-4">Story Section</h2>
-        <div className="flex flex-row gap-4">
-          {books
-            .filter((book) =>book.category==="Story"
-          ).map((book)=>(
-             <Link to={`/book/${book.id}`} key={book.id}>
-              <div className="border  bg-white rounded-xl p-4 shadow hover:shadow-lg transition">
-                <h3 className="text-lg font-bold">{book.bookname}</h3>
-                <p className="text-gray-600">{book.author}</p>
-                <p className="text-sm mt-1">Category: {book.category}</p>
-                <p className="text-blue-600 mt-2 font-semibold">{book.price} pts</p>
-                 <div class="w-50 h-50 bg-red-500 rounded-2xl">
-                  <img src={book.image} alt="image" class="h-full w-full "/>
-                </div>
-              </div>
-            </Link>
-          ))
-
-          }
-        </div>
-      </div>
-      <div id="autobiography" className="mt-15 p-4  bg-green-100">
-        <h2 className="text-2xl font-bold py-4">Autobiography Section</h2>
-        <div className="flex flex-row gap-4">
-          {books
-            .filter((book) =>book.category==="Autobiography"
-          ).map((book)=>(
-             <Link to={`/book/${book.id}`} key={book.id}>
-              <div className="border  bg-white rounded-xl p-4 shadow hover:shadow-lg transition">
-                <h3 className="text-lg font-bold">{book.bookname}</h3>
-                <p className="text-gray-600">{book.author}</p>
-                <p className="text-sm mt-1">Category: {book.category}</p>
-                <p className="text-blue-600 mt-2 font-semibold">{book.price} pts</p>
-                <div class="w-50 h-50 bg-red-500 rounded-2xl">
-                  <img src={book.image} alt="image" class="h-full w-full "/>
-                </div>
-              </div>
-            </Link>
-          ))
-
-          }
-        </div>
-      </div>
-      <div id="noble" className="mt-15 p-4  bg-green-100">
-        <h2 className="text-2xl font-bold py-4">Noble Section</h2>
-        <div className="flex flex-row gap-4">
-          {books
-            .filter((book) =>book.category==="Noble"
-          ).map((book)=>(
-             <Link to={`/book/${book.id}`} key={book.id}>
-              <div className="border  bg-white rounded-xl p-4 shadow hover:shadow-lg transition">
-                <h3 className="text-lg font-bold">{book.bookname}</h3>
-                <p className="text-gray-600">{book.author}</p>
-                <p className="text-sm mt-1">Category: {book.category}</p>
-                <p className="text-blue-600 mt-2 font-semibold">{book.price} pts</p>
-                 <div class="w-50 h-50 bg-red-500 rounded-2xl">
-                  <img src={book.image} alt="image" class="h-full w-full "/>
-                </div>
-              </div>
-            </Link>
-          ))
-
-          }
-        </div>
-      </div> 
-       <div id="cource" className="mt-15 p-4  bg-green-100">
-        <h2 className="text-2xl font-bold py-4">Cource Section</h2>
-        <div className="flex flex-row gap-4">
-          {books
-            .filter((book) =>book.category==="Cource"
-          ).map((book)=>(
-             <Link to={`/book/${book.id}`} key={book.id}>
-              <div className="border  bg-white rounded-xl p-4 shadow hover:shadow-lg transition">
-                <h3 className="text-lg font-bold">{book.bookname}</h3>
-                <p className="text-gray-600">{book.author}</p>
-                <p className="text-sm mt-1">Category: {book.category}</p>
-                <p className="text-blue-600 mt-2 font-semibold">{book.price} pts</p>
-               <div class="w-50 h-50 bg-red-500 rounded-2xl">
-                  <img src={book.image} alt="image" class="h-full w-full "/>
-                </div>
-              </div>
-            </Link>
-          ))
-
-          }
-        </div>
-      </div> 
     </div>
   );
 }

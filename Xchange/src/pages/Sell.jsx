@@ -22,7 +22,7 @@ function Sell() {
   };
   const handleSubmit =async (e)=>{
     e.preventDefault();
-    const res=await fetch('http://localhost:3000/create',{
+    const res=await fetch('http://localhost:3001/create',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(formdata)
@@ -62,6 +62,8 @@ function Sell() {
           placeholder='Paste Url'
            class="border border-white rounded px-2"
            name="image" />
+           <textarea name="description" onChange={handleChanges} placeholder='Discription...'
+           class="border border-white rounded px-2 wt w-100 h-20"></textarea>
           <button  class="bg-blue-600 rounded px-2 hover:bg-blue-300">Proceed</button>  
            </div>  
           </form>    
