@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
  
 function Sell() {
-  
+    const port = import.meta.env.VITE_API_URL || '3000';
   const [formdata,setForm] =useState({
     bookname:'',
     price:'',
@@ -22,7 +22,7 @@ function Sell() {
   };
   const handleSubmit =async (e)=>{
     e.preventDefault();
-    const res=await fetch('http://localhost:3001/create',{
+    const res=await fetch(`${port}/create`,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(formdata)

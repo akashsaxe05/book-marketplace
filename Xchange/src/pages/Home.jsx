@@ -15,7 +15,7 @@ function Home() {
   useEffect(() => {
     const fetching = async () => {
       try {
-        const res = await axios.get(`http://localhost:${port}/`);
+        const res = await axios.get(`${port}/`);
         setBooks(res.data || []);
       } catch (error) {
         console.error('Failed to load books:', error);
@@ -26,7 +26,7 @@ function Home() {
     };
 
     fetching();
-  }, [port]);
+  }, []);
 
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
