@@ -5,7 +5,9 @@ const app = express();
 const bookModel = require('./model/book');
 const userModel = require('./model/user');
 
-app.use(cors());
+app.use(cors({
+    origin:"*"
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -181,6 +183,6 @@ app.delete('/delete/:id', async (req, res) => {
   }
 });
 
-app.listen(3001, () => {
+app.listen(process.env.PORT, () => {
   console.log('listening on port 3001');
 });
