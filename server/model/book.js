@@ -1,10 +1,13 @@
 const mongoose = require('mongoose');
-require("dotenv").config();
-const pathdb=process.env.MONGODB_URL;
-mongoose.connect(pathdb).then(()=>{
-console.log("connected to mongooDB");
-}).catch((error)=>{
-     throw error;
+require('dotenv').config();
+
+const pathdb = process.env.MONGODB_URL || process.env.MONGO_URI;
+
+mongoose.connect(pathdb).then(() => {
+  console.log('connected to mongooDB');
+}).catch((error) => {
+  console.error('MongoDB connection error:', error.message);
+  throw error;
 });
 const bookSchema = mongoose.Schema({
   bookname: { type: String, required: true },

@@ -1,9 +1,12 @@
 const express = require('express');
 const cors = require('cors');
+const {createClient} = require('redis');
 const bcrypt = require('bcryptjs');
 const app = express();
 const bookModel = require('./model/book');
 const userModel = require('./model/user');
+
+
 
 app.use(cors({
     origin:"*"
@@ -11,9 +14,46 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const redisClient = createClient({
+  url: process.env.REDIS_URL || 'redis://localhost:6379'
+});
+
+redisClient.on('error', (error) => {
+  console.error('Redis error:', error);
+});
+
+(async () => {
+  await redisClient.connect();
+  console.log('Redis connected');
+})();
+
 app.get('/', async (req, res) => {
-  const books = await bookModel.find().populate('seller', 'name email points');
+
+ try{
+  const cachekey  = 'books:all';
+
+  const cachedBooks = await redisClient.get(cachekey);
+// redis
+  if(cachedBooks){
+    console.log('Books returned from Redis cache');
+    return res.json(JSON.parse(cachedBooks));
+  }
+
+  const books = await bookModel
+  .find()
+  .populate('seller','name email points')
+  .lean();
+
+  await redisClient.setEx(cachekey, 30, JSON.stringify(books));
+  console.log('Books returned from mongodb and saved to redis');
   res.json(books);
+ }catch(error){
+   res.status(500).json({error: 'Unable to fetch'});
+ }
+
+
+
+  
 });
 
 app.get('/book/:id', async (req, res) => {

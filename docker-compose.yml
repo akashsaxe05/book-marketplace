@@ -1,0 +1,20 @@
+services:
+  backend:
+    image: yourdockerhubusername/knowledge_xchange-backend:latest
+    build: ./server
+    env_file:
+      - ./server/.env
+    environment:
+      PORT: 3001
+      MONGO_URI: ${MONGO_URI:-}
+      MONGODB_URL: ${MONGODB_URL:-}
+    ports:
+      - "3001:3001"
+
+  frontend:
+    image: yourdockerhubusername/knowledge_xchange-frontend:latest
+    build: ./Xchange
+    environment:
+      VITE_API_URL: http://localhost:3001
+    ports:
+      - "5174:5173"

@@ -1,10 +1,12 @@
 const mongoose = require('mongoose');
-require("dotenv").config();
-const pathdb=process.env.MONGODB_URL;
-mongoose.connect(pathdb).then(()=>{
+require('dotenv').config();
 
-}).catch((error)=>{
-     throw error;
+const pathdb = process.env.MONGODB_URL || process.env.MONGO_URI;
+
+mongoose.connect(pathdb).then(() => {
+}).catch((error) => {
+  console.error('MongoDB connection error:', error.message);
+  throw error;
 });
 const userSchema = mongoose.Schema({
   name: { type: String, required: true, trim: true },
