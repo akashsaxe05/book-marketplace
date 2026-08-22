@@ -5,6 +5,7 @@ import BookDetail from './pages/BookDetail';
 import { useEffect, useState } from 'react';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Chatbot from './pages/ChatBot';
 import Navbar from './components/Navbar';
 import './App.css';
 
@@ -33,6 +34,8 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/chatBot" element={<Chatbot />} />
+
           <Route path="/sell" element={isLoggedIn ? <Sell /> : <Navigate to="/login" replace />} />
           <Route path="/book/:id" element={isLoggedIn ? <BookDetail /> : <Navigate to="/login" replace />} />
           <Route path="/" element={isLoggedIn ? <Home /> : <Navigate to="/login" replace />} />

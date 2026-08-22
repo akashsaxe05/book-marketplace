@@ -27,6 +27,8 @@ function Navbar() {
             </select>
             <Link to="/login" className="text-gray-700 hover:underline">Login</Link>
             <Link to="/sell" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white px-4 py-2 rounded-md h-7 flex items-center">Sell</Link>
+            <Link to="/chatBot" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white px-4 py-2 rounded-md h-7 flex items-center">Chat Bot</Link>
+
         
       </div>            
       

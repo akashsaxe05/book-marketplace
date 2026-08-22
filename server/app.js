@@ -5,9 +5,7 @@ const bcrypt = require('bcryptjs');
 const app = express();
 const bookModel = require('./model/book');
 const userModel = require('./model/user');
-
-
-
+const {ChatBotHandler} = require('./ChatbotHandler');
 app.use(cors({
     origin:"*"
 }));
@@ -146,6 +144,14 @@ app.post('/create', async (req, res) => {
     res.status(500).json({ error: 'Book creation failed' });
   }
 });
+//post prompt
+
+
+
+app.post('/prompt',ChatBotHandler )
+
+
+
 
 app.post('/purchase/:id', async (req, res) => {
   try {
@@ -222,6 +228,9 @@ app.delete('/delete/:id', async (req, res) => {
     res.status(500).json({ error: 'Delete failed' });
   }
 });
+
+
+
 
 app.listen(process.env.PORT, () => {
   console.log('listening on port 3001');
